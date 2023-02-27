@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
         name='termforces',
-        version='0.1.0',
+        version='0.1.1',
         author='thematdev',
         author_email='thematdev@thematdev.org',
         description='CLI for Codeforces',

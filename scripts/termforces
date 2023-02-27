@@ -3,8 +3,15 @@
 # Written by thematdev in 2023
 
 load_rc() {
-    if [[ -e $1 ]]; then source $1; fi;
+    [[ -e $1 ]] && source $1
 }
+
+die() {
+    echo "$@" >&2
+    exit 1
+}
+
+TF_PROBLEM_PREFIX=problem
 
 # Load .rc files
 load_rc ~/.config/termforces/termforces.rc
@@ -27,16 +34,21 @@ whoami() {
 submit() {
     source_file=$1
     # Calling from either parent or child directory
-    if [ $(dirname $1) = "." ]; then
-        p=$(pwd)
+    if [[ $(dirname $1) == "." ]]; then
+        p=$(basename $(pwd))
     else
         p=$(dirname $1)
     fi
-    problem_index=${p:0-1}
+    [[ -n $contest_id ]] || die "Unable to determine contest id, specify it manually"
+    if [ -z $problem_index ]; then
+        [[ $p == "$TF_PROBLEM_PREFIX"* ]] || die "Unable to determine problem index, specify it manually"
+    fi
+    problem_index=${p#"$TF_PROBLEM_PREFIX"}
     python3 -m termforces submit --contest-id $contest_id $problem_index $source_file
 }
 
 results() {
+    [[ -n $contest_id ]] || die "Unable to determine contest id, specify it manually"
     python3 -m termforces results-my --contest-id $contest_id
 }
 
@@ -72,9 +84,9 @@ strap() {
     do
         if [[ -d $template ]]
         then
-            cp -r $template problem$index
+            cp -r $template "$TF_PROBLEM_PREFIX"$index
         else
-            mkdir problem$index
+            mkdir "$TF_PROBLEM_PREFIX"$index
         fi
     done
     echo "contest_id=$contest_id" >> termforces.rc
