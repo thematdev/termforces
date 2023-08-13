@@ -31,19 +31,32 @@ whoami() {
     python3 -m termforces whoami
 }
 
-submit() {
-    source_file=$1
+fuzz_problem() {
     # Calling from either parent or child directory
     if [[ $(dirname $1) == "." ]]; then
         p=$(basename $(pwd))
     else
         p=$(dirname $1)
     fi
+
     [[ -n $contest_id ]] || die "Unable to determine contest id, specify it manually"
     if [ -z $problem_index ]; then
         [[ $p == "$TF_PROBLEM_PREFIX"* ]] || die "Unable to determine problem index, specify it manually"
     fi
     problem_index=${p#"$TF_PROBLEM_PREFIX"}
+}
+
+dl_samples() {
+    samples_dir=$1
+    fuzz_problem $samples_dir
+    
+    python3 -m termforces download-samples --contest-id $contest_id $problem_index $samples_dir
+}
+
+submit() {
+    source_file=$1
+    fuzz_problem $source_file
+
     python3 -m termforces submit --contest-id $contest_id $problem_index $source_file
 }
 
